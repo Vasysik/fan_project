@@ -27,6 +27,17 @@ def save_config():
     with open(CONFIG_FILE, 'w') as f:
         json.dump({"fans": system_data['fans']}, f, indent=2, ensure_ascii=False)
 
+def create_fan_config(name, pin):
+    new_fan = {
+        "id": f"fan_{int(time.time())}",
+        "name": name,
+        "pin": int(pin),
+        "mode": "manual",
+        "state": False,
+        "params": {"temp_high": 60, "temp_low": 45, "target_temp": 50, "manual_state": False}
+    }
+    return new_fan
+
 def setup_gpio():
     GPIO.setmode(GPIO.BCM)
     GPIO.setwarnings(False)
@@ -117,14 +128,7 @@ def socket_server():
                             need_save = True
 
                 elif cmd.get('type') == 'add_fan':
-                    new_fan = {
-                        "id": f"fan_{int(time.time())}",
-                        "name": cmd['name'],
-                        "pin": int(cmd['pin']),
-                        "mode": "manual",
-                        "state": False,
-                        "params": {"temp_high": 60, "temp_low": 45, "target_temp": 50, "manual_state": False}
-                    }
+                    new_fan = create_fan_config(cmd['name'], cmd['pin'])
                     system_data['fans'].append(new_fan)
                     GPIO.setup(new_fan['pin'], GPIO.OUT)
                     need_save = True
