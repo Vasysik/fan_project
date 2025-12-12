@@ -86,7 +86,8 @@ def socket_server():
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server.bind((HOST, PORT))
     server.listen(5)
-    print(f"Сервер запущен: {HOST}:{PORT}")
+
+    print(f"Сервер запущен: {HOST}:{PORT} ({os.popen('hostname -I').read().split()[0]}:{PORT})")
 
     while True:
         try:
