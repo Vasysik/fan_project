@@ -1,9 +1,10 @@
-import RPi.GPIO as GPIO
 import socket
 import json
 import threading
 import time
 import os
+try: import RPi.GPIO as GPIO
+except: print("Библиотека RPi.GPIO не найдена")
 
 HOST = '0.0.0.0'
 PORT = 5000
@@ -145,12 +146,13 @@ def socket_server():
         except Exception as e:
             print(f"Socket error: {e}")
 
-try:
-    load_config()
-    setup_gpio()
-    t = threading.Thread(target=control_loop)
-    t.daemon = True
-    t.start()
-    socket_server()
-except KeyboardInterrupt:
-    GPIO.cleanup()
+if __name__ == '__main__':
+    try:
+        load_config()
+        setup_gpio()
+        t = threading.Thread(target=control_loop)
+        t.daemon = True
+        t.start()
+        socket_server()
+    except KeyboardInterrupt:
+        GPIO.cleanup()
