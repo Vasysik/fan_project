@@ -1,0 +1,17 @@
+{
+  "fans": [
+    {
+      "id": "cpu_fan",
+      "name": "Главный кулер",
+      "pin": 18,
+      "mode": "interval", 
+      "state": false,
+      "params": {
+        "temp_high": 60, 
+        "temp_low": 45,
+        "target_temp": 50,
+        "manual_state": true
+      }
+    }
+  ]
+}

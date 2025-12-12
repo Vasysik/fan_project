@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Управление</title>
+</head>
+<body style="font-family: monospace; padding: 10px;">
+    <h1>Панель управления</h1>
+    
+    {% if not data %}
+        <h3>НЕТ СВЯЗИ С СЕРВЕРОМ</h3>
+        <a href="/">Обновить страницу</a>
+    {% else %}
+        <h3>CPU Температура: {{ data.cpu_temp }} °C</h3>
+        <a href="/add">[ + Добавить вентилятор ]</a>
+        <br><br>
+
+        {% for fan in data.fans %}
+            <div style="border: 2px solid black; padding: 15px; margin-bottom: 20px;">
+                <strong>{{ fan.name }}</strong> (GPIO: {{ fan.pin }})
+                <form method="POST" style="display:inline; float:right;">
+                    <input type="hidden" name="fan_id" value="{{ fan.id }}">
+                    <input type="hidden" name="action" value="delete_fan">
+                    <button type="submit" onclick="return confirm('Удалить?')">Удалить X</button>
+                </form>
+                
+                <br>
+                Статус: 
+                {% if fan.state %} 
+                    <b style="color:green;">КРУТИТСЯ</b> 
+                {% else %} 
+                    <b style="color:red;">СТОИТ</b> 
+                {% endif %}
+                <br><br>
+
+                <form method="POST">
+                    <input type="hidden" name="fan_id" value="{{ fan.id }}">
+                    <input type="hidden" name="action" value="change_mode">
+                    
+                    Режим: 
+                    <select name="mode">
+                        <option value="interval" {% if fan.mode == 'interval' %}selected{% endif %}>Диапазон</option>
+                        <option value="target" {% if fan.mode == 'target' %}selected{% endif %}>Удержание</option>
+                        <option value="manual" {% if fan.mode == 'manual' %}selected{% endif %}>Ручной</option>
+                    </select>
+                    <button type="submit">ОК</button>
+                </form>
+
+                <hr>
+
+                {% if fan.mode == 'interval' %}
+                <form method="POST">
+                    <input type="hidden" name="fan_id" value="{{ fan.id }}">
+                    <input type="hidden" name="action" value="set_interval">
+                    Вкл (max): <input type="number" name="temp_high" value="{{ fan.params.temp_high }}">
+                    Выкл (min): <input type="number" name="temp_low" value="{{ fan.params.temp_low }}">
+                    <button type="submit">Сохранить</button>
+                </form>
+                {% endif %}
+
+                {% if fan.mode == 'target' %}
+                <form method="POST">
+                    <input type="hidden" name="fan_id" value="{{ fan.id }}">
+                    <input type="hidden" name="action" value="set_target">
+                    Цель: <input type="number" name="target_temp" value="{{ fan.params.target_temp }}">
+                    <button type="submit">Сохранить</button>
+                </form>
+                {% endif %}
+
+                {% if fan.mode == 'manual' %}
+                <form method="POST">
+                    <input type="hidden" name="fan_id" value="{{ fan.id }}">
+                    <input type="hidden" name="action" value="toggle_manual">
+                    <input type="hidden" name="state" value="{{ 'False' if fan.params.manual_state else 'True' }}">
+                    
+                    <button type="submit" style="padding: 10px; width: 100%;">
+                        {{ 'ВЫКЛЮЧИТЬ' if fan.params.manual_state else 'ВКЛЮЧИТЬ' }}
+                    </button>
+                </form>
+                {% endif %}
+
+            </div>
+        {% endfor %}
+
+    {% endif %}
+</body>
+</html>

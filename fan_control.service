@@ -1,0 +1,19 @@
+[Unit]
+Description=Fan Control Daemon
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /home/pi/fan_project/rpi_daemon.py
+
+WorkingDirectory=/home/pi/fan_project
+
+Restart=always
+RestartSec=5
+
+User=root
+
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
