@@ -1,11 +1,15 @@
 from flask import Flask, render_template, request, redirect, url_for
 import socket
 import json
+import argparse
 
 app = Flask(__name__)
 
-RPI_IP, RPI_PORT = input('IP:ПОРТ Распберри: ').split(':')
-RPI_PORT = int(RPI_PORT)
+def parse_arguments():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--ip', default='0.0.0.0')
+    parser.add_argument('--port', default=5000)
+    return parser.parse_args()
 
 def talk_to_rpi(payload={}):
     try:
@@ -64,4 +68,7 @@ def add_fan():
     return render_template('add.html')
 
 if __name__ == '__main__':
+    args = parse_arguments()
+    RPI_IP = args.ip
+    RPI_PORT = int(args.port)
     app.run(debug=False, host='0.0.0.0', port=8000)

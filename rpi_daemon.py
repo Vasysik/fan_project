@@ -3,17 +3,25 @@ import json
 import threading
 import time
 import os
+import argparse
 try: import RPi.GPIO as GPIO
 except: print("Библиотека RPi.GPIO не найдена")
 
-HOST = '0.0.0.0'
-PORT = 5000
-CONFIG_FILE = 'config.json'
+DEFAULT_HOST = '0.0.0.0'
+DEFAULT_PORT = 5000
+DEFAULT_CONFIG_FILE = 'config.json'
 
 system_data = {
     "cpu_temp": 0.0,
     "fans": [] 
 }
+
+def parse_arguments():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config', default=DEFAULT_CONFIG_FILE)
+    parser.add_argument('--host', default=DEFAULT_HOST)
+    parser.add_argument('--port', default=DEFAULT_PORT)
+    return parser.parse_args()
 
 def load_config():
     try:
@@ -152,6 +160,10 @@ def socket_server():
 
 if __name__ == '__main__':
     try:
+        args = parse_arguments()
+        CONFIG_FILE = args.config
+        HOST = args.host
+        PORT = int(args.port)
         load_config()
         setup_gpio()
         t = threading.Thread(target=control_loop)
