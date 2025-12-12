@@ -128,6 +128,10 @@ def socket_server():
                     need_save = True
 
                 elif cmd.get('type') == 'delete_fan':
+                    for fan in system_data['fans']:
+                        if fan['id'] == cmd['fan_id']:
+                            GPIO.output(int(fan['pin']), False)
+                            break
                     system_data['fans'] = [f for f in system_data['fans'] if f['id'] != cmd['fan_id']]
                     need_save = True
                 
