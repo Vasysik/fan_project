@@ -17,6 +17,12 @@ system_data = {
 }
 
 def parse_arguments():
+    """
+    Парсит аргументы командной строки.
+
+    :return: Пространство имён с аргументами.
+    :rtype: argparse.Namespace
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', default=DEFAULT_CONFIG_FILE)
     parser.add_argument('--host', default=DEFAULT_HOST)
@@ -24,6 +30,10 @@ def parse_arguments():
     return parser.parse_args()
 
 def load_config():
+    """
+    Загружает конфигурацию вентиляторов из JSON-файла в глобальную переменную system_data.
+    Если файл не найден, инициализирует пустой список вентиляторов.
+    """
     try:
         with open(CONFIG_FILE, 'r') as f:
             data = json.load(f)
@@ -32,10 +42,23 @@ def load_config():
         system_data['fans'] = []
 
 def save_config():
+    """
+    Сохраняет текущее состояние вентиляторов в JSON-файл.
+    """
     with open(CONFIG_FILE, 'w') as f:
         json.dump({"fans": system_data['fans']}, f, indent=2, ensure_ascii=False)
 
 def create_fan_config(name, pin):
+    """
+    Создаёт структуру данных для нового вентилятора.
+    
+    :param name: Название вентилятора
+    :type name: str
+    :param pin: Номер GPIO пина.
+    :type pin: int
+    :return: Словарь с конфигурацией вентилятора.
+    :rtype: dict
+    """
     new_fan = {
         "id": f"fan_{int(time.time())}",
         "name": name,
@@ -47,6 +70,9 @@ def create_fan_config(name, pin):
     return new_fan
 
 def setup_gpio():
+    """
+    Инициализирует библиотеку GPIO и устанавливает пины в исходное состояние.
+    """
     GPIO.setmode(GPIO.BCM)
     GPIO.setwarnings(False)
     for fan in system_data['fans']:
@@ -54,6 +80,12 @@ def setup_gpio():
         GPIO.output(int(fan['pin']), fan['state'])
 
 def get_cpu_temp():
+    """
+    Считывает текущую температуру процессора.
+
+    :return: Температура процессора в градусах Цельсия или 45.0 при ошибке чтения.
+    :rtype: float
+    """
     try:
         with open('/sys/class/thermal/thermal_zone0/temp', 'r') as f:
             return float(f.read()) / 1000.0
@@ -61,6 +93,21 @@ def get_cpu_temp():
         return 45.0
 
 def update_fan_logic(fan, temp):
+    """
+    Вычисляет необходимое состояние вентилятора на основе температуры и режима.
+
+    Поддерживаемые режимы:
+    * interval: включение при temp_high, выключение при temp_low.
+    * target: удержание целевой температуры target_temp.
+    * manual: ручное управление.
+
+    :param fan: Конфигурация конкретного вентилятора.
+    :type fan: dict
+    :param temp: Текущая температура.
+    :type temp: float
+    :return: True, если вентилятор должен быть включен, иначе False.
+    :rtype: bool
+    """
     mode = fan['mode']
     p = fan['params']
     
@@ -84,6 +131,9 @@ def update_fan_logic(fan, temp):
     return new_state
 
 def control_loop():
+    """
+    Основной цикл управления: опрашивает температуру, обновляет состояние вентиляторов и обновляет конфиг.
+    """
     while True:
         temp = get_cpu_temp()
         system_data['cpu_temp'] = temp
@@ -102,6 +152,10 @@ def control_loop():
         time.sleep(0.2)
 
 def socket_server():
+    """
+    TCP сервер для приема команд от веб-клиента.
+    Обрабатывает команды добавления, удаления и обновления вентиляторов.
+    """
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server.bind((HOST, PORT))

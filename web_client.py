@@ -6,12 +6,26 @@ import argparse
 app = Flask(__name__)
 
 def parse_arguments():
+    """
+    Парсит аргументы командной строки.
+
+    :return: Пространство имён с аргументами.
+    :rtype: argparse.Namespace
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument('--ip', default='0.0.0.0')
     parser.add_argument('--port', default=5000)
     return parser.parse_args()
 
 def talk_to_rpi(payload={}):
+    """
+    Отправляет JSON-запрос серверу управления вентиляторами через сокет.
+    
+    :param payload: Словарь с данными для отправки. По умолчанию пустой.
+    :type payload: dict
+    :return: Ответ от сервера в виде словаря или None при ошибке.
+    :rtype: dict or None
+    """
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.settimeout(2)
@@ -25,6 +39,14 @@ def talk_to_rpi(payload={}):
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    """
+    Обработчик главной страницы веб-интерфейса.
+    
+    В GET-запросе: Запрашивает данные у демона и рендерит страницу.
+    В POST-запросе: Обрабатывает действия пользователя (смена режима, удаление и т.д.).
+
+    :return: HTML-страница или перенаправление.
+    """
     if request.method == 'POST':
         fan_id = request.form.get('fan_id')
         action = request.form.get('action')
@@ -53,6 +75,11 @@ def index():
 
 @app.route('/add', methods=['GET', 'POST'])
 def add_fan():
+    """
+    Обработчик страницы добавления нового вентилятора.
+
+    :return: HTML-страница добавления или перенаправление на главную после успеха.
+    """
     if request.method == 'POST':
         name = request.form.get('name')
         pin = request.form.get('pin')
