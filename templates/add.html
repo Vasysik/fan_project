@@ -14,6 +14,14 @@
         <label>GPIO Pin (число):</label><br>
         <input type="number" name="pin" required placeholder="14"><br><br>
 
+        <label>Датчик температуры:</label><br>
+        <select name="sensor_id">
+            {% for s in data.sensors %}
+                <option value="{{ s.id }}">{{ s.name }} ({{ s.id }})</option>
+            {% endfor %}
+        </select>
+        <br><br>
+
         <button type="submit" style="padding: 5px 15px;">Добавить</button>
     </form>
 

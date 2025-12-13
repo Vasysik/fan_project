@@ -50,11 +50,12 @@ def index():
     if request.method == 'POST':
         fan_id = request.form.get('fan_id')
         action = request.form.get('action')
-        
         payload = {'fan_id': fan_id}
 
-        if action in ['change_mode', 'set_interval', 'set_target', 'toggle_manual', 'delete_fan']:
-            payload['type'] = 'delete_fan' if action == 'delete_fan' else 'update'
+        if action == 'delete_fan':
+            payload['type'] = 'delete_fan'
+        else:
+            payload['type'] = 'update'
 
             if action == 'change_mode':
                 payload['mode'] = request.form.get('mode')
@@ -67,8 +68,8 @@ def index():
                 state_str = request.form.get('state') 
                 payload['manual_state'] = True if state_str == 'True' else False
             
-            talk_to_rpi(payload)
-            return redirect('/')
+        talk_to_rpi(payload)
+        return redirect('/')
 
     data = talk_to_rpi()
     return render_template('index.html', data=data, ip=RPI_IP)
@@ -80,19 +81,23 @@ def add_fan():
 
     :return: HTML-страница добавления или перенаправление на главную после успеха.
     """
+    data = talk_to_rpi()
+    
     if request.method == 'POST':
         name = request.form.get('name')
         pin = request.form.get('pin')
+        sensor_id = request.form.get('sensor_id')
         
         payload = {
             'type': 'add_fan',
             'name': name,
-            'pin': pin
+            'pin': pin,
+            'sensor_id': sensor_id
         }
         talk_to_rpi(payload)
         return redirect('/')
     
-    return render_template('add.html')
+    return render_template('add.html', data=data)
 
 if __name__ == '__main__':
     args = parse_arguments()

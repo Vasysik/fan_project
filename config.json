@@ -7,11 +7,19 @@
       "mode": "interval", 
       "state": false,
       "params": {
+        "sensor_id": "cpu_sensor",
         "temp_high": 60, 
         "temp_low": 45,
         "target_temp": 50,
         "manual_state": true
       }
+    }
+  ],
+  "sensors": [
+    {
+      "id": "cpu_sensor",
+      "name": "Датчик температуры процессора",
+      "path": "/sys/class/thermal/thermal_zone0/temp" 
     }
   ]
 }

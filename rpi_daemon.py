@@ -14,8 +14,8 @@ DEFAULT_PORT = 5000
 DEFAULT_CONFIG_FILE = 'config.json'
 
 system_data = {
-    "cpu_temp": 0.0,
-    "fans": [] 
+    "fans": [],
+    "sensors": []
 }
 
 def parse_arguments():
@@ -33,24 +33,30 @@ def parse_arguments():
 
 def load_config():
     """
-    Загружает конфигурацию вентиляторов из JSON-файла в глобальную переменную system_data.
-    Если файл не найден, инициализирует пустой список вентиляторов.
+    Загружает конфигурацию вентиляторов и сенсоров из JSON-файла в глобальную переменную system_data.
+    Если файл не найден, инициализирует пустой список вентиляторов и сенсоров.
     """
     try:
         with open(CONFIG_FILE, 'r') as f:
             data = json.load(f)
-            system_data['fans'] = data['fans']
+            system_data['fans'] = data.get('fans', [])
+            system_data['sensors'] = data.get('sensors', [])
     except FileNotFoundError:
         system_data['fans'] = []
+        system_data['sensors'] = []
 
 def save_config():
     """
-    Сохраняет текущее состояние вентиляторов в JSON-файл.
+    Сохраняет текущее состояние вентиляторов и сенсоров в JSON-файл.
     """
     with open(CONFIG_FILE, 'w') as f:
-        json.dump({"fans": system_data['fans']}, f, indent=2, ensure_ascii=False)
+        data = {
+            "fans": system_data['fans'],
+            "sensors": system_data['sensors']
+        }
+        json.dump(data, f, indent=2, ensure_ascii=False)
 
-def create_fan_config(name, pin):
+def create_fan_config(name, pin, sensor_id):
     """
     Создаёт структуру данных для нового вентилятора.
     
@@ -58,16 +64,25 @@ def create_fan_config(name, pin):
     :type name: str
     :param pin: Номер GPIO пина.
     :type pin: int
+    :param sensor_id: ID привязанного сенсора.
+    :type sensor_id: str
     :return: Словарь с конфигурацией вентилятора.
     :rtype: dict
     """
+
     new_fan = {
         "id": f"fan_{int(time.time())}",
         "name": name,
         "pin": int(pin),
         "mode": "manual",
         "state": False,
-        "params": {"temp_high": 60, "temp_low": 45, "target_temp": 50, "manual_state": False}
+        "params": {
+            "sensor_id": sensor_id,
+            "temp_high": 60, 
+            "temp_low": 45, 
+            "target_temp": 50, 
+            "manual_state": False
+        }
     }
     return new_fan
 
@@ -81,18 +96,23 @@ def setup_gpio():
         GPIO.setup(int(fan['pin']), GPIO.OUT)
         GPIO.output(int(fan['pin']), fan['state'])
 
-def get_cpu_temp():
+def get_temp_from_file(path):
     """
-    Считывает текущую температуру процессора.
+    Считывает текущую температуру из файла соответствующего датчика.
 
-    :return: Температура процессора в градусах Цельсия или 45.0 при ошибке чтения.
+    Предполагается, что файл содержит целое число (Милиградусы Цельсия).
+
+    :param path: Путь к файлу датчика (абсолютный или относительный).
+    :type path: str
+    :return: Температура в градусах Цельсия или 999.0 в случае ошибки.
     :rtype: float
     """
     try:
-        with open('/sys/class/thermal/thermal_zone0/temp', 'r') as f:
-            return float(f.read()) / 1000.0
+        with open(path, 'r') as f:
+            content = f.read().strip()
+            return float(content) / 1000.0
     except:
-        return 45.0
+        return 999.0
 
 def update_fan_logic(fan, temp):
     """
@@ -105,7 +125,7 @@ def update_fan_logic(fan, temp):
 
     :param fan: Конфигурация конкретного вентилятора.
     :type fan: dict
-    :param temp: Текущая температура.
+    :param temp: Текущая температура привязанного датчика.
     :type temp: float
     :return: True, если вентилятор должен быть включен, иначе False.
     :rtype: bool
@@ -137,13 +157,18 @@ def control_loop():
     Основной цикл управления: опрашивает температуру, обновляет состояние вентиляторов и обновляет конфиг.
     """
     while True:
-        temp = get_cpu_temp()
-        system_data['cpu_temp'] = temp
-        
+        current_temps = {}
+        for sensor in system_data['sensors']:
+            t = get_temp_from_file(sensor['path'])
+            sensor['current_value'] = t
+            current_temps[sensor['id']] = t
+
         state_changed = False
 
         for fan in system_data['fans']:
-            target_state = update_fan_logic(fan, temp)
+            s_id = fan['params'].get('sensor_id')
+            fan_temp = current_temps.get(s_id, 999.0)
+            target_state = update_fan_logic(fan, fan_temp)
             if fan['state'] != target_state:
                 fan['state'] = target_state
                 GPIO.output(int(fan['pin']), target_state)
@@ -156,7 +181,7 @@ def control_loop():
 def socket_server():
     """
     TCP сервер для приема команд от веб-клиента.
-    Обрабатывает команды добавления, удаления и обновления вентиляторов.
+    Обрабатывает команды добавления, удаления и обновления вентиляторов и сенсоров.
     """
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -184,15 +209,25 @@ def socket_server():
                                 if key in cmd:
                                     fan['params'][key] = cmd[key]
                             
-                            temp = system_data['cpu_temp']
-                            new_state = update_fan_logic(fan, temp)
+                            s_id = fan['params'].get('sensor_id')
+                            current_temp = 999.0
+                            for s in system_data['sensors']:
+                                if s['id'] == s_id:
+                                    current_temp = get_temp_from_file(s['path'])
+                                    break
+                            
+                            new_state = update_fan_logic(fan, current_temp)
                             fan['state'] = new_state
                             GPIO.output(int(fan['pin']), new_state)
                             
                             need_save = True
 
                 elif cmd.get('type') == 'add_fan':
-                    new_fan = create_fan_config(cmd['name'], cmd['pin'])
+                    s_id = cmd.get('sensor_id')
+                    if not s_id and system_data['sensors']:
+                        s_id = system_data['sensors'][0]['id']
+                    
+                    new_fan = create_fan_config(cmd['name'], cmd['pin'], s_id)
                     system_data['fans'].append(new_fan)
                     GPIO.setup(new_fan['pin'], GPIO.OUT)
                     need_save = True

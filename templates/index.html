@@ -11,9 +11,16 @@
         <h3>НЕТ СВЯЗИ С СЕРВЕРОМ</h3>
         <a href="/">Обновить страницу</a>
     {% else %}
-        <h3>CPU Температура: {{ data.cpu_temp }} °C</h3>
-        <a href="/add">[ + Добавить вентилятор ]</a>
-        <br><br>
+        <div style="border: 2px solid black; padding: 15px; margin-bottom: 20px;">
+            <strong>Сенсоры:</strong>
+            <br>
+            {% for s in data.sensors %}
+            {{ s.name }} ({{ s.id }}): <b>{{ s.current_value }} °C</b>
+            {% endfor %}
+            <br>
+        </div>
+
+        <br>
 
         {% for fan in data.fans %}
             <div style="border: 2px solid black; padding: 15px; margin-bottom: 20px;">
@@ -25,6 +32,9 @@
                 </form>
                 
                 <br>
+                <small>ID сенсора: {{ fan.params.sensor_id }}</small>
+                
+                <br><br>
                 Статус: 
                 {% if fan.state %} 
                     <b style="color:green;">КРУТИТСЯ</b> 
@@ -81,6 +91,8 @@
 
             </div>
         {% endfor %}
+
+        <a href="/add">[ + Добавить вентилятор ]</a>
 
     {% endif %}
 </body>
