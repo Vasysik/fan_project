@@ -224,7 +224,7 @@ def socket_server():
                         if fan['id'] == target_id:
                             if 'mode' in cmd: fan['mode'] = cmd['mode']
                             if 'name' in cmd: fan['name'] = cmd['name']
-                            for key in ['temp_high', 'temp_low', 'target_temp', 'manual_state']:
+                            for key in ['temp_high', 'temp_low', 'target_temp', 'manual_state', 'sensor_id']:
                                 if key in cmd:
                                     fan['params'][key] = cmd[key]
                             

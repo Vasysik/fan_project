@@ -49,7 +49,6 @@ def index():
     """
     if request.method == 'POST':
         fan_id = request.form.get('fan_id')
-        sensor_id = request.form.get('sensor_id')
         action = request.form.get('action')
         
         payload = {}
@@ -57,6 +56,7 @@ def index():
         if action == 'delete_fan':
             payload = {'type': 'delete_fan', 'fan_id': fan_id}
         elif action == 'delete_sensor':
+            sensor_id = request.form.get('sensor_id')
             payload = {'type': 'delete_sensor', 'sensor_id': sensor_id}
         else:
             payload = {'type': 'update', 'fan_id': fan_id}
@@ -66,8 +66,10 @@ def index():
             elif action == 'set_interval':
                 payload['temp_high'] = float(request.form.get('temp_high'))
                 payload['temp_low'] = float(request.form.get('temp_low'))
+                payload['sensor_id'] = request.form.get('sensor_id')
             elif action == 'set_target':
                 payload['target_temp'] = float(request.form.get('target_temp'))
+                payload['sensor_id'] = request.form.get('sensor_id')
             elif action == 'toggle_manual':
                 state_str = request.form.get('state') 
                 payload['manual_state'] = True if state_str == 'True' else False
