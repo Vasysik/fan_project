@@ -99,6 +99,27 @@ def add_fan():
     
     return render_template('add.html', data=data)
 
+@app.route('/add_sensor', methods=['GET', 'POST'])
+def add_sensor():
+    """
+    Обработчик страницы добавления нового сенсора.
+
+    :return: HTML-страница добавления или перенаправление на главную после успеха.
+    """
+    if request.method == 'POST':
+        name = request.form.get('name')
+        path = request.form.get('path')
+        
+        payload = {
+            'type': 'add_sensor',
+            'name': name,
+            'path': path
+        }
+        talk_to_rpi(payload)
+        return redirect('/')
+    
+    return render_template('add_sensor.html')
+
 if __name__ == '__main__':
     args = parse_arguments()
     RPI_IP = args.ip

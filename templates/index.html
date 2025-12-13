@@ -11,16 +11,20 @@
         <h3>НЕТ СВЯЗИ С СЕРВЕРОМ</h3>
         <a href="/">Обновить страницу</a>
     {% else %}
+        {% for s in data.sensors %}
         <div style="border: 2px solid black; padding: 15px; margin-bottom: 20px;">
-            <strong>Сенсоры:</strong>
+            <strong>{{ s.name }} ({{ s.id }})</strong>
             <br>
-            {% for s in data.sensors %}
-            {{ s.name }} ({{ s.id }}): <b>{{ s.current_value }} °C</b>
-            {% endfor %}
+            <small>Путь: {{ s.path }}</small>
+            <br><br>
+            Статус: <strong>{{ s.current_value }} °C</strong>
             <br>
         </div>
+        {% endfor %}
+        
+        <a href="/add_sensor">[ + Добавить сенсор ]</a>
 
-        <br>
+        <br><br><br>
 
         {% for fan in data.fans %}
             <div style="border: 2px solid black; padding: 15px; margin-bottom: 20px;">

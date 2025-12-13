@@ -258,6 +258,11 @@ def socket_server():
                             break
                     system_data['fans'] = [f for f in system_data['fans'] if f['id'] != cmd['fan_id']]
                     need_save = True
+
+                elif cmd.get('type') == 'add_sensor':
+                    new_sensor = create_sensor_config(cmd['name'], cmd['path'])
+                    system_data['sensors'].append(new_sensor)
+                    need_save = True
                 
                 if need_save:
                     save_config()
