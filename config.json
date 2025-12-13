@@ -19,7 +19,8 @@
     {
       "id": "cpu_sensor",
       "name": "Датчик температуры процессора",
-      "path": "/sys/class/thermal/thermal_zone0/temp" 
+      "path": "/sys/class/thermal/thermal_zone0/temp",
+      "current_value": 0.0
     }
   ]
 }

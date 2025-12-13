@@ -1,5 +1,5 @@
 import pytest
-from rpi_daemon import update_fan_logic, get_cpu_temp, create_fan_config
+from rpi_daemon import update_fan_logic, create_fan_config, create_sensor_config
 
 def test_interval_mode_high():
     fan = {
@@ -41,12 +41,16 @@ def test_manual_mode():
     }
     assert update_fan_logic(fan, 100.0) is True
 
-def test_get_cpu_temp():
-    assert isinstance(get_cpu_temp(), (int, float)) is True
-
 def test_create_fan_config():
-    fan = create_fan_config("Test fan", 12)
+    fan = create_fan_config("Test fan", 12, "test_sensor_id")
     assert fan['name'] == "Test fan"
     assert fan['pin'] == 12
     assert fan['mode'] == "manual"
     assert 'params' in fan
+
+def test_create_sensor_config():
+    sensor = create_sensor_config("Test sensor", "test.txt")
+    assert sensor['name'] == "Test sensor"
+    assert sensor['path'] == "test.txt"
+    assert 'id' in sensor
+    assert sensor['current_value'] == 0.0

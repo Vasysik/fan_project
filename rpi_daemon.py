@@ -60,7 +60,7 @@ def create_fan_config(name, pin, sensor_id):
     """
     Создаёт структуру данных для нового вентилятора.
     
-    :param name: Название вентилятора
+    :param name: Название вентилятора.
     :type name: str
     :param pin: Номер GPIO пина.
     :type pin: int
@@ -85,6 +85,25 @@ def create_fan_config(name, pin, sensor_id):
         }
     }
     return new_fan
+
+def create_sensor_config(name, path):
+    """
+    Создаёт структуру данных для нового датчика температуры.
+
+    :param name: Название датчика.
+    :type name: str
+    :param path: Путь к файлу значения со значением.
+    :type path: str
+    :return: Словарь с конфигурацией датчика.
+    :rtype: dict
+    """
+    new_sensor = {
+        "id": f"sensor_{int(time.time())}",
+        "name": name,
+        "path": path,
+        "current_value": 0.0
+    }
+    return new_sensor
 
 def setup_gpio():
     """
