@@ -4,8 +4,10 @@ import threading
 import time
 import os
 import argparse
-try: import RPi.GPIO as GPIO
-except: print("Библиотека RPi.GPIO не найдена")
+try: 
+    import RPi.GPIO as GPIO
+except: 
+    print("Библиотека RPi.GPIO не найдена")
 
 DEFAULT_HOST = '0.0.0.0'
 DEFAULT_PORT = 5000
