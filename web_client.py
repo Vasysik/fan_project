@@ -49,13 +49,17 @@ def index():
     """
     if request.method == 'POST':
         fan_id = request.form.get('fan_id')
+        sensor_id = request.form.get('sensor_id')
         action = request.form.get('action')
-        payload = {'fan_id': fan_id}
-
+        
+        payload = {}
+        
         if action == 'delete_fan':
-            payload['type'] = 'delete_fan'
+            payload = {'type': 'delete_fan', 'fan_id': fan_id}
+        elif action == 'delete_sensor':
+            payload = {'type': 'delete_sensor', 'sensor_id': sensor_id}
         else:
-            payload['type'] = 'update'
+            payload = {'type': 'update', 'fan_id': fan_id}
 
             if action == 'change_mode':
                 payload['mode'] = request.form.get('mode')
@@ -67,7 +71,7 @@ def index():
             elif action == 'toggle_manual':
                 state_str = request.form.get('state') 
                 payload['manual_state'] = True if state_str == 'True' else False
-            
+        
         talk_to_rpi(payload)
         return redirect('/')
 

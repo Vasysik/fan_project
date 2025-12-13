@@ -14,6 +14,11 @@
         {% for s in data.sensors %}
         <div style="border: 2px solid black; padding: 15px; margin-bottom: 20px;">
             <strong>{{ s.name }} ({{ s.id }})</strong>
+            <form method="POST" style="float:right;">
+                <input type="hidden" name="sensor_id" value="{{ s.id }}">
+                <input type="hidden" name="action" value="delete_sensor">
+                <button type="submit" onclick="return confirm('Удалить?')">Удалить X</button>
+            </form>
             <br>
             <small>Путь: {{ s.path }}</small>
             <br><br>

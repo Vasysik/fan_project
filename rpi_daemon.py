@@ -263,6 +263,10 @@ def socket_server():
                     new_sensor = create_sensor_config(cmd['name'], cmd['path'])
                     system_data['sensors'].append(new_sensor)
                     need_save = True
+
+                elif cmd.get('type') == 'delete_sensor':
+                    system_data['sensors'] = [s for s in system_data['sensors'] if s['id'] != cmd['sensor_id']]
+                    need_save = True
                 
                 if need_save:
                     save_config()
